@@ -8,6 +8,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
+ * learn from @renWuXian HenCoder
  * 仪表盘 view
  * @author WillXia
  * @date 2022/2/22.
