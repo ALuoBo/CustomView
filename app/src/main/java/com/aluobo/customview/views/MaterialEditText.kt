@@ -74,6 +74,7 @@ class MaterialEditText(context: Context, attr: AttributeSet) : AppCompatEditText
 
         val typeArray = context.obtainStyledAttributes(attr, R.styleable.MaterialEditText)
         useFloatLabel = typeArray.getBoolean(R.styleable.MaterialEditText_useFloatLabel, true)
+        typeArray.recycle()
 
         background.getPadding(backgroundRect) // 整个 view 的 padding
 
