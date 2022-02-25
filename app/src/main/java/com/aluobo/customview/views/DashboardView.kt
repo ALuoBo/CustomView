@@ -16,14 +16,13 @@ import kotlin.math.sin
 class DashboardView(context: Context, attr: AttributeSet?) : View(context, attr) {
     private val angle = 120f
     private val radius = dp2px(150f)
-    private val paint = Paint()
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG) //反锯齿
     private val pathEffect: PathDashPathEffect
     private val dash = Path()
     private val pathMeasure = PathMeasure()
     private val dashNum = 10
 
     init {
-
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = dp2px(2f)
         dash.addRect(0f, 0f, dp2px(2f), dp2px(10f), Path.Direction.CW)
