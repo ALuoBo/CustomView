@@ -25,10 +25,10 @@ class TagLayout(context: Context?, attr: AttributeSet?) : ViewGroup(context, att
         val specWidth = MeasureSpec.getSize(widthMeasureSpec)
         val specMode = MeasureSpec.getMode(widthMeasureSpec)
 
-        for ( i in 0 until childCount) {
-            val childView = getChildAt(i)
+        for ( (index,child)in children.withIndex()) {
+
             measureChildWithMargins(
-                childView,
+                child,
                 widthMeasureSpec,
                 widthUsed,
                 heightMeasureSpec,
@@ -37,14 +37,14 @@ class TagLayout(context: Context?, attr: AttributeSet?) : ViewGroup(context, att
 
             // 如果已用宽度 + 子 view 宽度 大于 父宽度
             if (specMode != MeasureSpec.UNSPECIFIED
-                && lineWidthUse + childView.measuredWidth > specWidth
+                && lineWidthUse + child.measuredWidth > specWidth
             ) {
 
                 heightUsed += lineMaxHeight
                 lineMaxHeight = 0
                 lineWidthUse = 0
                 measureChildWithMargins(
-                    childView,
+                    child,
                     widthMeasureSpec,
                     widthUsed,
                     heightMeasureSpec,
@@ -53,19 +53,19 @@ class TagLayout(context: Context?, attr: AttributeSet?) : ViewGroup(context, att
 
             }
 
-            if (i >= childBounds.size) {
+            if (index >= childBounds.size) {
                 childBounds.add(Rect())
             }
 
-            childBounds[i].set(
+            childBounds[index].set(
                 lineWidthUse,
                 heightUsed,
-                lineWidthUse + childView.measuredWidth,
-                heightUsed + childView.measuredHeight
+                lineWidthUse + child.measuredWidth,
+                heightUsed + child.measuredHeight
             )
 
-            lineWidthUse += childView.measuredWidth
-            lineMaxHeight = max(lineMaxHeight, childView.measuredHeight)
+            lineWidthUse += child.measuredWidth
+            lineMaxHeight = max(lineMaxHeight, child.measuredHeight)
             widthUsed = max(widthUsed, lineWidthUse)
         }
 
