@@ -3,5 +3,8 @@
     <declare-styleable name="MaterialEditText">
         <attr name="useFloatLabel" format="boolean"/>
     </declare-styleable>
+    <declare-styleable name="ScalableImageView">
+        <attr name="src" format="integer"/>
+    </declare-styleable>
 
 </resources>

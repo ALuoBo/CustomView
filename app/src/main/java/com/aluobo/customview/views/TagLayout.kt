@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.core.view.children
 import kotlin.math.max
@@ -108,6 +109,16 @@ class TagLayout(context: Context?, attr: AttributeSet?) : ViewGroup(context, att
          val selfHeight = heightUsed + lineMaxHeight
          setMeasuredDimension(selfWidth, selfHeight)
      }*/
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+
+        if(event?.actionMasked == MotionEvent.ACTION_UP){
+            performClick()
+
+        }
+
+        return true
+    }
 
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {

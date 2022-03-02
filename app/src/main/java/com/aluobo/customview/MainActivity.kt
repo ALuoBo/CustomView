@@ -7,6 +7,6 @@ import com.aluobo.customview.views.MaterialEditText
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.layout)
+        setContentView(R.layout.scalable_image_view)
     }
 }
