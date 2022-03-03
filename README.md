@@ -10,5 +10,7 @@
 
 <img src = "https://user-images.githubusercontent.com/45779049/155661295-d5d62f05-b732-43fc-b520-ce055ebf47a2.png" width="200px">
 
+### ScaleAbleImageView
+> A imageview extend view , could show a bitmap ,you can scale it by double click and scroll to look the scaled image
 
-
+<img src = "https://user-images.githubusercontent.com/45779049/156512004-116c2b91-406f-4e1c-8d09-41365a82f24f.gif" width="200px">
