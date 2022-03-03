@@ -1,5 +1,6 @@
 package com.aluobo.customview.views
 
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -26,9 +27,19 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var smallScale = 0f
     private var bigScale = 0f
+    private var isBig = false
+
+    private var fraction = 0f
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    private val objectAnimator = ObjectAnimator.ofFloat(this, "fraction", 0f, 1f)
 
     private val gestureDetectorListener = MGestureDetectorListener()
     private val gestureDetector = GestureDetectorCompat(context, gestureDetectorListener)
+
 
     init {
         val typeArray = context.obtainStyledAttributes(attr, R.styleable.ScalableImageView)
@@ -61,32 +72,35 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
+        val progress = smallScale + (bigScale - smallScale) * fraction
+
         canvas.scale(
-            bigScale,
-            bigScale,
+            progress,
+            progress,
             width / 2f,
             height / 2f
         ) //参数里的 sx sy 是横向和纵向的放缩倍数； px py 是放缩的轴心
 
         canvas.drawBitmap(
             bitmap,
-            originalOffsetX,
+            originalOffsetX, // 确保绘制在屏幕中心
             originalOffsetY,
             paint
         ) // 绘制图片
     }
 
 
-    inner class MGestureDetectorListener : GestureDetector.OnGestureListener {
+    inner class MGestureDetectorListener : GestureDetector.OnGestureListener,
+        GestureDetector.OnDoubleTapListener {
 
         override fun onDown(e: MotionEvent?): Boolean = true
 
         override fun onShowPress(e: MotionEvent?) {
-            TODO("Not yet implemented")
+
         }
 
         override fun onSingleTapUp(e: MotionEvent?): Boolean {
-            TODO("Not yet implemented")
+            return false
         }
 
         override fun onScroll(
@@ -95,11 +109,11 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
             distanceX: Float,
             distanceY: Float
         ): Boolean {
-            TODO("Not yet implemented")
+            return false
         }
 
         override fun onLongPress(e: MotionEvent?) {
-            TODO("Not yet implemented")
+
         }
 
         override fun onFling(
@@ -108,7 +122,26 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
             velocityX: Float,
             velocityY: Float
         ): Boolean {
-            TODO("Not yet implemented")
+            return false
+        }
+
+        override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+            return false
+        }
+
+        override fun onDoubleTap(e: MotionEvent?): Boolean {
+            isBig = if (isBig) {
+                objectAnimator.reverse()
+                false
+            } else {
+                objectAnimator.start()
+                true
+            }
+            return false
+        }
+
+        override fun onDoubleTapEvent(e: MotionEvent?): Boolean {
+            return false
         }
     }
 
