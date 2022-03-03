@@ -17,6 +17,7 @@ import com.aluobo.customview.R
  * @date 2022/3/2.
  */
 private val IMAGE_SIZE = 300.dp.toInt()
+private val SCAL_OVER_SIZE = 1.2f
 
 class ScalableImageView(context: Context, attr: AttributeSet) : View(context, attr) {
 
@@ -29,17 +30,18 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
     private var bigScale = 0f
     private var isBig = false
 
-    private var fraction = 0f
+    private var scaleFraction = 0f
         set(value) {
             field = value
             invalidate()
         }
 
-    private val objectAnimator = ObjectAnimator.ofFloat(this, "fraction", 0f, 1f)
+    private val objectAnimator = ObjectAnimator.ofFloat(this, "scaleFraction", 0f, 1f)
 
     private val gestureDetectorListener = MGestureDetectorListener()
-    private val gestureDetector = GestureDetectorCompat(context, gestureDetectorListener)
 
+    // Android 提供便捷实现滑动，点击的辅助工具，提供一些回调方便使用
+    private val gestureDetector = GestureDetectorCompat(context, gestureDetectorListener)
 
     init {
         val typeArray = context.obtainStyledAttributes(attr, R.styleable.ScalableImageView)
@@ -49,6 +51,8 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
             IMAGE_SIZE
         )
         typeArray.recycle()
+
+        //gestureDetector.setIsLongpressEnabled(false) 可以关闭长按事件
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -59,20 +63,23 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
         // 根据宽高比适应
         if (bitmap.width / bitmap.height.toFloat() > width / height.toFloat()) {
             smallScale = width / bitmap.width.toFloat()
-            bigScale = height / bitmap.height.toFloat()
+            bigScale = height / bitmap.height.toFloat() * SCAL_OVER_SIZE
         } else {
             smallScale = height / bitmap.height.toFloat()
-            bigScale = width / bitmap.width.toFloat()
+            bigScale = width / bitmap.width.toFloat() * SCAL_OVER_SIZE
         }
 
     }
 
+    /**
+     * 使用 GestureDetector 实现 OnTouchEvent 接管
+     */
     override fun onTouchEvent(event: MotionEvent?): Boolean = gestureDetector.onTouchEvent(event)
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val progress = smallScale + (bigScale - smallScale) * fraction
+        val progress = smallScale + (bigScale - smallScale) * scaleFraction
 
         canvas.scale(
             progress,
@@ -89,16 +96,25 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
         ) // 绘制图片
     }
 
-
     inner class MGestureDetectorListener : GestureDetector.OnGestureListener,
         GestureDetector.OnDoubleTapListener {
 
+        /**
+         * 返回 true 接管触摸事件
+         * 除 onDown 的返回值有实际价值，其他重写方法的返回值无实际作用
+         */
         override fun onDown(e: MotionEvent?): Boolean = true
 
+        /**
+         * 支持预按下，事件触发 100ms 之后会调用此方法
+         */
         override fun onShowPress(e: MotionEvent?) {
 
         }
 
+        /**
+         * 设置双击监听器 #OnDoubleTapListener 之后此方法会失效，若设置之后也想实现单击效果，在 #onSingleTapConfirmed 中实现即可
+         */
         override fun onSingleTapUp(e: MotionEvent?): Boolean {
             return false
         }
@@ -125,6 +141,9 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
             return false
         }
 
+        /**
+         * 单击回调
+         */
         override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
             return false
         }
