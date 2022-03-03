@@ -9,8 +9,12 @@ import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.widget.OverScroller
 import androidx.core.view.GestureDetectorCompat
+import androidx.core.view.ViewCompat
 import com.aluobo.customview.R
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * @author WillXia
@@ -21,8 +25,11 @@ private val SCAL_OVER_SIZE = 1.2f
 
 class ScalableImageView(context: Context, attr: AttributeSet) : View(context, attr) {
 
-    private var originalOffsetX: Float = 0f
-    private var originalOffsetY: Float = 0f
+    private var originalOffsetX = 0f
+    private var originalOffsetY = 0f
+
+    private var offsetX = 0f
+    private var offsetY = 0f
 
     private val bitmap: Bitmap
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -30,6 +37,8 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
     private var bigScale = 0f
     private var isBig = false
 
+    private val overScroller: OverScroller
+    val mFilingRunnable = FilingRunnable()
     private var scaleFraction = 0f
         set(value) {
             field = value
@@ -52,6 +61,7 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
         )
         typeArray.recycle()
 
+        overScroller = OverScroller(context)
         //gestureDetector.setIsLongpressEnabled(false) 可以关闭长按事件
     }
 
@@ -80,6 +90,8 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
         super.onDraw(canvas)
 
         val progress = smallScale + (bigScale - smallScale) * scaleFraction
+
+        canvas.translate(offsetX, offsetY)
 
         canvas.scale(
             progress,
@@ -119,25 +131,54 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
             return false
         }
 
+        /**
+         *  @param event 最新事件
+         *  @param distanceX 旧的位置减去新的位置
+         *  @param distanceY 旧的位置减去新的位置
+         */
         override fun onScroll(
-            e1: MotionEvent?,
-            e2: MotionEvent?,
+            down: MotionEvent?,
+            event: MotionEvent?,
             distanceX: Float,
             distanceY: Float
         ): Boolean {
+            if (isBig) {
+
+                offsetX -= distanceX
+                offsetY -= distanceY
+                offsetX = min(offsetX, (bitmap.width * bigScale - width) / 2)
+                offsetY = min(offsetY, (bitmap.height * bigScale - height) / 2)
+                offsetX = max(offsetX, -(bitmap.width * bigScale - width) / 2)
+                offsetY = max(offsetY, -(bitmap.height * bigScale - height) / 2)
+            }
+            invalidate()
             return false
         }
 
-        override fun onLongPress(e: MotionEvent?) {
-
-        }
+        override fun onLongPress(e: MotionEvent?) {}
 
         override fun onFling(
-            e1: MotionEvent?,
-            e2: MotionEvent?,
+            down: MotionEvent,
+            e2: MotionEvent,
             velocityX: Float,
             velocityY: Float
         ): Boolean {
+            if (isBig) {
+                overScroller.fling(
+                    offsetX.toInt(),
+                    offsetY.toInt(),
+                    velocityX.toInt(),
+                    velocityY.toInt(),
+                    (-(bitmap.width * bigScale - width) / 2).toInt(),
+                    ((bitmap.width * bigScale - width) / 2).toInt(),
+                    (-(bitmap.height * bigScale - height) / 2).toInt(),
+                    ((bitmap.height * bigScale - height) / 2).toInt(),
+                    500,500
+                )
+
+                ViewCompat.postOnAnimation(this@ScalableImageView, mFilingRunnable)
+            }
+
             return false
         }
 
@@ -161,6 +202,24 @@ class ScalableImageView(context: Context, attr: AttributeSet) : View(context, at
 
         override fun onDoubleTapEvent(e: MotionEvent?): Boolean {
             return false
+        }
+    }
+
+    fun refresh() {
+        overScroller.computeScrollOffset()
+        offsetX = overScroller.currX.toFloat()
+        offsetY = overScroller.currY.toFloat()
+        invalidate()
+    }
+
+    inner class FilingRunnable : Runnable {
+        override fun run() {
+            if (overScroller.computeScrollOffset()) {
+                offsetX = overScroller.currX.toFloat()
+                offsetY = overScroller.currY.toFloat()
+                invalidate()
+                ViewCompat.postOnAnimation(this@ScalableImageView, this)
+            }
         }
     }
 
